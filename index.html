@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Advanced CSS & JS Skills: Responsive Quiz & API Demo</title>
+<style>
+  /* Base Reset and Styling */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+  }
+
+  h1, h2, h3 {
+    margin: 0.4em 0;
+    color: #fff;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+
+  /* Container */
+  .container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    padding: 20px;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  /* Responsive Quiz Styles */
+  .quiz-question {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+  .options {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 16px;
+  }
+  .options li {
+    background: #f0f0f0;
+    margin-bottom: 12px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .options li:hover {
+    background: #d6dafc;
+  }
+  .options li.selected {
+    background: #4e54c8;
+    color: white;
+  }
+
+  .btn {
+    background: #4e54c8;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    margin-right: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .btn:disabled {
+    background: #a3a3f3;
+    cursor: not-allowed;
+  }
+  .btn:hover:not(:disabled) {
+    background: #3b3f93;
+  }
+
+  /* Quiz Navigation */
+  .quiz-nav {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Score display */
+  .quiz-score {
+    font-weight: bold;
+    margin-top: 12px;
+    font-size: 1.2rem;
+  }
+
+  /* API Joke Section */
+  #joke-section {
+    text-align: center;
+  }
+  #joke-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    margin: 15px 0;
+    min-height: 60px;
+  }
+  #fetch-joke {
+    margin-top: 8px;
+  }
+
+  /* Responsive Media Queries */
+
+  /* Mobile phones (up to 600px width) */
+  @media (max-width: 600px) {
+    body {
+      padding: 8px;
+    }
+    .container {
+      padding: 18px;
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 1.6rem;
+    }
+    .quiz-question {
+      font-size: 1rem;
+    }
+    .btn {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+    }
+    .options li {
+      font-size: 0.95rem;
+      padding: 10px 12px;
+    }
+  }
+
+  /* Smaller mobile phones (max-width 350px) */
+  @media (max-width: 350px) {
+    h1 {
+      font-size: 1.4rem;
+    }
+    .quiz-question {
+      font-size: 0.9rem;
+    }
+    .btn {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+    .options li {
+      font-size: 0.85rem;
+      padding: 8px 10px;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>Advanced CSS & JavaScript Skills</h1>
+    <h2>Responsive Interactive Quiz & API Data Fetch Demo</h2>
+  </header>
+
+  <main class="container" id="quiz-container">
+    <h3>Interactive Quiz</h3>
+    <div id="quiz-content">
+      <div class="quiz-question" id="question-text">Loading question...</div>
+      <ul class="options" id="options-list"></ul>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn" id="prev-btn" disabled>Previous</button>
+      <button class="btn" id="next-btn" disabled>Next</button>
+      <button class="btn" id="submit-btn" disabled>Submit</button>
+    </div>
+    <div class="quiz-score" id="score-display" style="display:none;"></div>
+  </main>
+
+  <section class="container" id="joke-section">
+    <h3>Fetch a Joke from JokeAPI</h3>
+    <div id="joke-text">Press the button to get a random joke!</div>
+    <button class="btn" id="fetch-joke">Get Joke</button>
+  </section>
+
+<script>
+  (() => {
+    // Quiz Data
+    const quizQuestions = [
+      {
+        question: "Which language runs in a web browser?",
+        options: ["Java", "C", "Python", "JavaScript"],
+        answerIndex: 3,
+      },
+      {
+        question: "What does CSS stand for?",
+        options: [
+          "Central Style Sheets",
+          "Cascading Style Sheets",
+          "Cascading Simple Sheets",
+          "Cars SUVs Sailboats"
+        ],
+        answerIndex: 1,
+      },
+      {
+        question: "What does HTML stand for?",
+        options: [
+          "Hypertext Markup Language",
+          "Hypertext Markdown Language",
+          "Hyperloop Machine Language",
+          "Helicopters Terminals Motorboats Lamborginis"
+        ],
+        answerIndex: 0,
+      },
+      {
+        question: "Inside which HTML element do we put the JavaScript?",
+        options: ["<js>", "<scripting>", "<script>", "<javascript>"],
+        answerIndex: 2,
+      },
+      {
+        question: "Which one is a JavaScript framework?",
+        options: ["Laravel", "React", "Django", "Rails"],
+        answerIndex: 1,
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let selectedAnswers = Array(quizQuestions.length).fill(null);
+
+    // DOM Elements
+    const questionText = document.getElementById('question-text');
+    const optionsList = document.getElementById('options-list');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const scoreDisplay = document.getElementById('score-display');
+
+    function renderQuestion(index) {
+      const q = quizQuestions[index];
+      questionText.textContent = q.question;
+
+      optionsList.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const li = document.createElement('li');
+        li.textContent = opt;
+        li.setAttribute('tabindex', '0');
+        li.classList.toggle('selected', selectedAnswers[index] === i);
+        li.addEventListener('click', () => selectAnswer(i));
+        li.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectAnswer(i);
+          }
+        });
+        optionsList.appendChild(li);
+      });
+
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === quizQuestions.length - 1;
+      submitBtn.disabled = selectedAnswers.includes(null);
+
+      scoreDisplay.style.display = 'none';
+    }
+
+    function selectAnswer(optionIndex) {
+      selectedAnswers[currentQuestionIndex] = optionIndex;
+      renderQuestion(currentQuestionIndex);
+    }
+
+    function showScore() {
+      const correctCount = selectedAnswers.reduce((acc, val, idx) => {
+        return acc + (val === quizQuestions[idx].answerIndex ? 1 : 0);
+      }, 0);
+      scoreDisplay.textContent = `You scored ${correctCount} out of ${quizQuestions.length}.`;
+      scoreDisplay.style.display = 'block';
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion(currentQuestionIndex);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentQuestionIndex < quizQuestions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion(currentQuestionIndex);
+      }
+    });
+
+    submitBtn.addEventListener('click', () => {
+      showScore();
+    });
+
+    // Initial render
+    renderQuestion(currentQuestionIndex);
+
+
+    // Joke API fetch
+    const jokeText = document.getElementById('joke-text');
+    const fetchJokeBtn = document.getElementById('fetch-joke');
+
+    async function fetchJoke() {
+      fetchJokeBtn.disabled = true;
+      jokeText.textContent = 'Loading joke...';
+      try {
+        const response = await fetch('https://v2.jokeapi.dev/joke/Any?type=single');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        jokeText.textContent = data.joke || 'No joke found.';
+      } catch (error) {
+        jokeText.textContent = 'Failed to fetch a joke. Try again later.';
+      } finally {
+        fetchJokeBtn.disabled = false;
+      }
+    }
+
+    fetchJokeBtn.addEventListener('click', fetchJoke);
+
+  })();
+</script>
+
+</body>
+</html>
+
+```
+
